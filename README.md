@@ -1,6 +1,6 @@
 # MakePy
 
-MakePy is a tool to generate a very simple makefile for your C projects. It scan all your C files in a specific path and analyce the dependencies between they. The it uses this information to generate a correct compilation order.
+MakePy is a tool to generate a very simple makefile for your C projects. It scan all your C files in a specific path (recursively) and analyze the dependencies between they. Then it uses this information to generate a correct compilation order.
 
 ## Instalation
 
