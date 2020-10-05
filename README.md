@@ -21,5 +21,5 @@ python makepy.py [path]
 ### Setting a compilation ouput name
 
 ```shell
-python makepy.py [path] -o [name]
+python makepy.py [path] [name]
 ```
