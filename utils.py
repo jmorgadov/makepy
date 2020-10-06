@@ -15,6 +15,20 @@ class Node():
         return self.name
 
 
+
+def dfs(graph: dict, n: Node):
+
+    def dfs_rec(graph: dict, v: Node):
+        v.visit = True
+        for u in graph[v]:
+            if not u.visit:
+                dfs_rec(graph, u)
+
+    for node in graph.keys():
+        node.reset()
+    
+    dfs_rec(graph, n)
+
 order = []
 
 def topological_sort(graph: dict):

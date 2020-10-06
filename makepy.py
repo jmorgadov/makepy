@@ -1,10 +1,9 @@
 import os
 import re
 from pathlib import Path
-import sys
 import typer
 from typer.colors import RED
-from utils import Node, topological_sort
+from utils import *
 import platform
 
 app = typer.Typer()
@@ -22,6 +21,8 @@ def generate_compile_line(
     )):
 
     c_files = {}
+    main_name = None
+
     for root, dirs, files in os.walk(str(path)):
         for f in files:
             if f.endswith('.c'):
@@ -32,6 +33,7 @@ def generate_compile_line(
         return
 
     dependency_graph = {Node(f):[] for f in c_files.keys()}
+    nodes = {node.name:node for node in dependency_graph.keys()}
 
     for f in dependency_graph.keys():
         text = []
@@ -44,10 +46,31 @@ def generate_compile_line(
             if match:
                 dep = line[match.pos:][10:].split('.')[0]
                 if dep != f.name and dep in c_files.keys():
-                    item = list(filter(lambda x: x.name == dep, dependency_graph.keys()))[0]
+                    item = nodes[dep]
                     dependency_graph[f].append(item)
 
+            # check if main
+            match = re.search(r'int main\(', line)
+            if match:
+                if main_name:
+                    typer.secho('There are two definitions of \
+                                \'main\' in the project', fg=RED)
+                    return
+                else:
+                    main_name = f.name
+    
+    if not main_name:
+        typer.secho('There is no \'main\' function in any file', fg=RED)
+        return
 
+    # Eliminating unused dependencies
+    dfs(dependency_graph, nodes[main_name])
+
+    for n in list(dependency_graph.keys()):
+        if not n.visit:
+            dependency_graph.pop(n)
+
+    # Validating and order dependencies    
     valid, order = topological_sort(dependency_graph)
 
     if not valid:
@@ -58,15 +81,14 @@ def generate_compile_line(
     save = True
 
     make_line = 'gcc ' + ' '.join(order)
-    if out != 'a':
 
+    if out != 'a':
         plt = platform.system()
         extension = ''
         if plt == 'Linux':
             extension = '.out'
         elif plt == 'Windows':
             extension = '.exe'
-
         make_line += f' -o {out + extension}'
 
     if make_path.exists():
