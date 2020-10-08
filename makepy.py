@@ -26,7 +26,7 @@ def generate_compile_line(
     for root, dirs, files in os.walk(str(path)):
         for f in files:
             if f.endswith('.c'):
-                c_files[f[:-2]] = (str(Path(root) / Path(f)))
+                c_files[f[:-2]] = str(Path(root) / Path(f))
 
     if len(c_files.keys()) == 0:
         typer.secho('No C files found')
@@ -69,18 +69,17 @@ def generate_compile_line(
     for n in list(dependency_graph.keys()):
         if not n.visit:
             dependency_graph.pop(n)
+            c_files.pop(n.name)
 
-    # Validating and order dependencies    
-    valid, order = topological_sort(dependency_graph)
-
-    if not valid:
-        typer.secho('Your C files contains cyclic references', fg=RED)
-        return        
+    # if not valid:
+    #     typer.secho('Your C files contains cyclic references', fg=RED)
+    #     return        
 
     make_path = path / Path('makefile')
     save = True
 
-    make_line = 'gcc ' + ' '.join(order)
+    file_rel_path = [str(Path(p).relative_to(path)) for p in c_files.values()]
+    make_line = 'gcc ' + ' '.join(file_rel_path)
 
     if out != 'a':
         plt = platform.system()
