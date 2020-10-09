@@ -42,9 +42,9 @@ def generate_compile_line(
         for line in text:
 
             # search dependency
-            match = re.search(r'#include "\w*.h"', line)
+            match = re.search(r'#include "(\w*).h"', line)
             if match:
-                dep = line[match.pos:][10:].split('.')[0]
+                dep = match.groups(0)[0]
                 if dep != f.name and dep in c_files.keys():
                     item = nodes[dep]
                     dependency_graph[f].append(item)
